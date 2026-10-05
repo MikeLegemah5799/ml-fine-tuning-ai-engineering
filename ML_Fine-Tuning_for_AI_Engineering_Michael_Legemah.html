@@ -1,0 +1,1037 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ML Fine-Tuning for AI Engineering · Michael Legemah</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Outfit:wght@300;400;500;600&family=Raleway:ital,wght@0,500;0,700;0,800;1,500;1,700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:        #2d2a2e;
+  --bg-deep:   #221f22;
+  --bg-card:   #3a3640;
+  --bg-surface:#332f34;
+  --border:    rgba(255,255,255,0.07);
+  --border-md: rgba(255,255,255,0.13);
+  --yellow:  #ffd866;
+  --pink:    #ff6188;
+  --cyan:    #78dce8;
+  --orange:  #fc9867;
+  --green:   #a9dc76;
+  --purple:  #ab9df2;
+  --text:    #fcfcfa;
+  --soft:    #c1b8c8;
+  --muted:   #78dce8;
+  --font-serif: 'Raleway', 'Segoe UI', Helvetica, Arial, sans-serif;
+  --font-mono:  'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --font-sans:  'Outfit', 'Segoe UI', Helvetica, Arial, sans-serif;
+  box-sizing: border-box;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  color-scheme: dark;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { color-scheme: dark; } }
+:root[data-theme="dark"] { color-scheme: dark; }
+html { scroll-padding-top: calc(env(safe-area-inset-top, 0px) + 72px); scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+*, *::before, *::after { box-sizing: inherit; }
+body { margin: 0; background: var(--bg); color: var(--text); font-family: var(--font-sans); font-weight: 300; font-size: 17px; line-height: 1.65; -webkit-font-smoothing: antialiased; }
+a { color: var(--cyan); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+:focus-visible { outline: 2px solid var(--yellow); outline-offset: 3px; border-radius: 4px; }
+.wrap { max-width: 1120px; margin: 0 auto; padding: 0 24px; }
+code, kbd { font-family: var(--font-mono); font-size: .86em; color: var(--yellow); background: var(--bg-deep); border-radius: 4px; padding: 1px 6px; }
+strong { font-weight: 500; color: var(--text); }
+
+/* top bar */
+.topbar { border-bottom: 1px solid var(--border); background: var(--bg-deep); }
+.topbar .wrap { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding-block: 14px; }
+.brand { display: flex; align-items: center; gap: 10px; color: var(--text); text-decoration: none; font-family: var(--font-serif); font-weight: 700; }
+.brand-mark { width: 30px; height: 30px; border-radius: 8px; background: var(--bg-card); border: 1px solid var(--border-md); display: grid; place-items: center; font-family: var(--font-mono); font-size: 13px; color: var(--yellow); }
+.topbar .status { font-family: var(--font-mono); font-size: 12.5px; color: var(--green); }
+
+/* hero */
+.hero { padding: 64px 0 36px; }
+.hero-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr); gap: 48px; align-items: start; }
+.kicker { font-family: var(--font-mono); font-size: 13px; color: var(--muted); margin: 0 0 18px; }
+h1 { font-family: var(--font-serif); font-weight: 800; font-size: clamp(38px, 5.6vw, 64px); line-height: 1.04; letter-spacing: -.02em; margin: 0 0 22px; }
+h1 em { font-style: italic; font-weight: 500; color: var(--yellow); }
+.thesis { font-family: var(--font-serif); font-weight: 500; font-style: italic; font-size: clamp(18px, 2vw, 21px); line-height: 1.45; border-left: 3px solid var(--green); padding-left: 16px; margin: 0 0 20px; }
+.lede { color: var(--soft); max-width: 50ch; margin: 0 0 24px; }
+.legend { display: flex; flex-wrap: wrap; gap: 8px 18px; font-size: 14px; color: var(--soft); padding: 0; margin: 0; list-style: none; }
+.legend li { display: flex; align-items: center; gap: 8px; }
+.dot { width: 10px; height: 10px; border-radius: 50%; flex: none; display: inline-block; }
+
+/* code window */
+.win { background: var(--bg-deep); border: 1px solid var(--border-md); border-radius: 14px; overflow: hidden; margin: 0 0 20px; }
+.win-head { display: flex; align-items: center; gap: 8px; padding: 10px 14px; border-bottom: 1px solid var(--border); font-family: var(--font-mono); font-size: 12.5px; color: var(--soft); }
+.win-head i { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+.win-head .fname { margin-left: 8px; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.copy { font-family: var(--font-mono); font-size: 11.5px; color: var(--soft); background: transparent; border: 1px solid var(--border-md); border-radius: 6px; padding: 2px 9px; cursor: pointer; }
+.copy:hover { color: var(--text); border-color: var(--soft); }
+.win pre { margin: 0; padding: 14px 16px 16px; overflow-x: auto; font-family: var(--font-mono); font-size: 13px; line-height: 1.6; color: var(--text); tab-size: 2; }
+.win pre code { background: none; padding: 0; color: inherit; font-size: inherit; }
+.t-c { color: #8f8599; font-style: italic; } .t-s { color: var(--green); } .t-k { color: var(--pink); } .t-n { color: var(--purple); }
+
+/* reminders */
+.reminders { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; padding: 8px 0 36px; }
+.reminder { border-left: 3px solid var(--c, var(--purple)); background: var(--bg-surface); border-radius: 0 10px 10px 0; padding: 16px 20px; }
+.reminder h2 { font-family: var(--font-serif); font-size: 17px; font-weight: 700; margin: 0 0 4px; color: var(--c, var(--purple)); }
+.reminder p { margin: 0; color: var(--soft); font-size: 15.5px; }
+
+/* toolbar */
+.toolbar { position: sticky; top: 0; z-index: 5; background: color-mix(in srgb, var(--bg) 92%, transparent); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border-block: 1px solid var(--border); padding-top: env(safe-area-inset-top, 0px); }
+.toolbar .wrap { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding-block: 10px; }
+.toolbar input[type="search"] { flex: 1 1 200px; min-width: 0; background: var(--bg-deep); border: 1px solid var(--border-md); color: var(--text); border-radius: 8px; padding: 8px 12px; font: inherit; font-size: 15px; }
+.toolbar input::placeholder { color: #8f8599; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { color: var(--soft); border: 1px solid var(--border-md); border-radius: 999px; padding: 5px 12px; font-size: 13.5px; text-decoration: none; display: inline-flex; align-items: center; gap: 7px; }
+.chip:hover, .chip.on { color: var(--bg-deep); background: var(--c); border-color: var(--c); font-weight: 500; }
+.chip .dot { background: var(--c); } .chip:hover .dot, .chip.on .dot { background: var(--bg-deep); }
+
+/* sections */
+section.sec { padding: 52px 0 8px; }
+.sec-head { margin: 0 0 24px; }
+.sec-num { font-family: var(--font-mono); font-size: 13px; color: var(--c); margin: 0 0 6px; }
+.sec h2.title { font-family: var(--font-serif); font-weight: 800; font-size: clamp(28px, 3.6vw, 38px); line-height: 1.1; letter-spacing: -.01em; margin: 0 0 8px; }
+.sec-head p { color: var(--soft); margin: 0; max-width: 68ch; }
+.card { background: var(--bg-surface); border: 1px solid var(--border); border-radius: 14px; padding: 22px 24px; margin: 0 0 18px; }
+.card > h3 { font-family: var(--font-serif); font-weight: 700; font-size: 21px; line-height: 1.2; margin: 0 0 4px; }
+.card > .meta { font-family: var(--font-mono); font-size: 12.5px; color: var(--muted); margin: 0 0 14px; }
+.card h4 { font-family: var(--font-serif); font-weight: 700; font-size: 16px; margin: 20px 0 6px; color: var(--c, var(--yellow)); }
+.card p { margin: 0 0 12px; color: var(--soft); max-width: 78ch; }
+.card ul, .card ol { color: var(--soft); padding-left: 20px; margin: 0 0 12px; max-width: 78ch; }
+.card li { margin-bottom: 5px; }
+.card li::marker { color: var(--c, var(--yellow)); }
+.card .win { margin-top: 12px; margin-bottom: 14px; }
+.grid2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+.grid2 > .card { margin: 0; }
+.stack { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+.stack span { font-family: var(--font-mono); font-size: 11.5px; color: var(--soft); background: var(--bg-card); border-radius: 5px; padding: 3px 7px; }
+.ver { font-family: var(--font-mono); font-size: .72em; color: var(--purple); border: 1px solid rgba(171,157,242,.5); border-radius: 4px; padding: 0 5px; margin-left: 4px; vertical-align: .1em; white-space: nowrap; font-weight: 400; }
+.callout { border-left: 3px solid var(--c, var(--orange)); background: rgba(252,152,103,.06); border-radius: 0 10px 10px 0; padding: 12px 16px; margin: 14px 0; color: var(--soft); font-size: 15.5px; }
+.callout b { font-family: var(--font-mono); font-weight: 500; font-size: 12.5px; color: var(--c, var(--orange)); display: block; margin-bottom: 2px; }
+
+/* tables */
+.tbl { overflow-x: auto; border: 1px solid var(--border-md); border-radius: 12px; margin: 12px 0 16px; background: var(--bg-deep); }
+table { width: 100%; border-collapse: collapse; min-width: 640px; font-size: 15px; }
+th, td { text-align: left; vertical-align: top; padding: 11px 14px; border-bottom: 1px solid var(--border); color: var(--soft); }
+thead th { font-family: var(--font-mono); font-weight: 400; font-size: 12px; color: var(--muted); background: rgba(255,255,255,.02); white-space: nowrap; }
+tbody tr:last-child td, tbody tr:last-child th { border-bottom: 0; }
+tbody th { font-weight: 500; color: var(--text); }
+td code { white-space: nowrap; }
+
+/* diagrams */
+figure.diagram { margin: 14px 0 18px; background: var(--bg-deep); border: 1px solid var(--border-md); border-radius: 14px; padding: 12px 12px 8px; overflow-x: auto; }
+figure.diagram svg { display: block; width: 100%; min-width: 640px; height: auto; }
+figure.diagram figcaption { font-family: var(--font-mono); font-size: 12px; color: var(--muted); padding: 6px 8px 4px; }
+svg text { font-family: 'IBM Plex Mono', ui-monospace, monospace; fill: var(--text); }
+svg .t-sub { fill: var(--soft); font-size: 10.5px; }
+svg .t-h { font-size: 12.5px; font-weight: 500; }
+svg .box { fill: var(--bg-card); stroke: var(--border-md); stroke-width: 1.2; }
+svg .arr { stroke: var(--soft); stroke-width: 1.5; fill: none; }
+
+/* pillars */
+.pillars { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
+.pillar { background: var(--bg-surface); border-top: 3px solid var(--c); border-radius: 0 0 10px 10px; padding: 16px 18px; }
+.pillar b { font-family: var(--font-serif); font-weight: 700; color: var(--c); display: block; margin-bottom: 4px; }
+.pillar span { color: var(--soft); font-size: 14.5px; line-height: 1.5; }
+
+.empty { display: none; text-align: center; color: var(--soft); padding: 32px; border: 1px dashed var(--border-md); border-radius: 14px; margin-top: 24px; }
+footer { margin-top: 56px; border-top: 1px solid var(--border); background: var(--bg-deep); }
+footer .wrap { padding-block: 22px; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 10px; font-size: 14px; color: var(--soft); }
+footer a { color: var(--soft); }
+.hide { display: none !important; }
+
+@media (max-width: 900px) {
+  .hero-grid { grid-template-columns: 1fr; gap: 32px; }
+  .grid2 { grid-template-columns: 1fr; }
+  .reminders { grid-template-columns: 1fr; }
+  .pillars { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 520px) {
+  body { font-size: 16px; }
+  .wrap { padding: 0 16px; }
+  .hero { padding-top: 40px; }
+  .card { padding: 18px; }
+  .pillars { grid-template-columns: 1fr; }
+  .topbar .status { display: none; }
+}
+@media print { .toolbar, .copy { display: none; } body { background: #fff; } }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="wrap">
+    <a class="brand" href="https://mleg.tech" target="_blank" rel="noopener"><span class="brand-mark">ML</span>Michael Legemah</a>
+    <span class="status">&gt;&gt;&gt; model_customization = True</span>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="wrap hero-grid">
+    <div>
+      <p class="kicker">fine_tuning.md · bedrock × hugging face trl × pytorch</p>
+      <h1>Fine-tune last, <em>and on purpose</em></h1>
+      <p class="thesis">Prompting changes what you ask, RAG changes what the model knows, fine-tuning changes how it behaves. Pick the cheapest layer that fixes the failure you can actually measure.</p>
+      <p class="lede">A production cheatsheet for adapting LLMs on Amazon Bedrock (managed) and Hugging Face TRL (full control): execution layers, LoRA/QLoRA, the PyTorch training loop underneath, data schemas, hyperparameter mapping, export paths, evals and the decision framework.</p>
+      <ul class="legend">
+        <li><span class="dot" style="background:var(--yellow)"></span>Frameworks</li>
+        <li><span class="dot" style="background:var(--cyan)"></span>PEFT &amp; architecture</li>
+        <li><span class="dot" style="background:var(--pink)"></span>Data &amp; toolkit</li>
+        <li><span class="dot" style="background:var(--green)"></span>Decisions</li>
+      </ul>
+    </div>
+    <div class="win" style="margin:0" aria-label="Escalation ladder">
+      <div class="win-head"><i style="background:var(--pink)"></i><i style="background:var(--yellow)"></i><i style="background:var(--green)"></i><span class="fname">escalation_ladder.py</span></div>
+      <pre><code data-lang="py"># climb only when the rung below is measured and failing
+def customize(task, evals):
+    if evals.pass_with(prompt_engineering):   # minutes, API only
+        return "prompt"
+    if task.needs_fresh_or_private_facts:     # real-time data
+        return "rag"
+    if task.needs_locked_in_behavior:         # style, schema, reasoning
+        return "sft"                          # LoRA / QLoRA
+    if task.has_preference_pairs:             # chosen vs rejected
+        return "dpo | orpo"
+    return "combine(rag, sft)"               # most prod systems</code></pre>
+    </div>
+  </div>
+</section>
+
+<div class="wrap">
+  <div class="reminders">
+    <div class="reminder" style="--c:var(--yellow)">
+      <h2>Eval before you train</h2>
+      <p>No held-out eval set, no fine-tune. If you cannot score the base model, you cannot prove the tuned one is better.</p>
+    </div>
+    <div class="reminder" style="--c:var(--cyan)">
+      <h2>Data beats hyperparameters</h2>
+      <p>A few hundred clean, consistent examples outperform thousands of noisy ones. Fix the dataset before touching learning rate.</p>
+    </div>
+    <div class="reminder" style="--c:var(--purple)">
+      <h2>Check the <span class="ver">verify per model</span> tags</h2>
+      <p>Bedrock hyperparameters, schemas and model support differ per base model and region, and TRL arguments shift between releases. Confirm against current docs.</p>
+    </div>
+  </div>
+</div>
+
+<nav class="toolbar" aria-label="Sections">
+  <div class="wrap">
+    <input type="search" id="q" placeholder="Filter cards, e.g. DPO, PyTorch, JSONL, GGUF, ROUGE" aria-label="Filter cards">
+    <div class="chips">
+      <a class="chip" href="#s1" style="--c:var(--yellow)"><span class="dot"></span>1 Frameworks</a>
+      <a class="chip" href="#s2" style="--c:var(--cyan)"><span class="dot"></span>2 PEFT &amp; PyTorch</a>
+      <a class="chip" href="#s3" style="--c:var(--pink)"><span class="dot"></span>3 Toolkit</a>
+      <a class="chip" href="#s4" style="--c:var(--green)"><span class="dot"></span>4 Decisions</a>
+    </div>
+  </div>
+</nav>
+
+<main class="wrap">
+
+<!-- ================= 1 ================= -->
+<section class="sec" id="s1" style="--c:var(--yellow)">
+  <div class="sec-head">
+    <p class="sec-num">// 01</p>
+    <h2 class="title">Fine-tuning frameworks &amp; execution layers</h2>
+    <p>Two ways to get a customized model: hand AWS a dataset and a role (Bedrock), or own the training loop on your GPUs (TRL). Same goal, very different control surface.</p>
+  </div>
+
+  <figure class="diagram">
+    <svg viewBox="0 0 960 330" role="img" aria-label="Two paths to a custom model: Bedrock managed and Hugging Face TRL">
+      <defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="#c1b8c8"/></marker></defs>
+      <text x="10" y="18" class="t-h" style="fill:var(--yellow)">PATH A · Amazon Bedrock (managed job)</text>
+      <g>
+        <rect class="box" x="10" y="30" width="164" height="76" rx="10"/><text x="92" y="62" text-anchor="middle" class="t-h">S3 dataset</text><text x="92" y="82" text-anchor="middle" class="t-sub">train.jsonl + val</text>
+        <rect class="box" x="204" y="30" width="164" height="76" rx="10"/><text x="286" y="62" text-anchor="middle" class="t-h">IAM exec role</text><text x="286" y="82" text-anchor="middle" class="t-sub">trust: bedrock</text>
+        <rect class="box" x="398" y="30" width="164" height="76" rx="10" style="stroke:var(--yellow)"/><text x="480" y="62" text-anchor="middle" class="t-h">Customization job</text><text x="480" y="82" text-anchor="middle" class="t-sub">AWS-managed compute</text>
+        <rect class="box" x="592" y="30" width="164" height="76" rx="10"/><text x="674" y="62" text-anchor="middle" class="t-h">Custom model</text><text x="674" y="82" text-anchor="middle" class="t-sub">ARN + metrics in S3</text>
+        <rect class="box" x="786" y="30" width="164" height="76" rx="10" style="stroke:var(--green)"/><text x="868" y="62" text-anchor="middle" class="t-h">Provisioned TP</text><text x="868" y="82" text-anchor="middle" class="t-sub">InvokeModel / Converse</text>
+        <path class="arr" d="M174 68H200" marker-end="url(#ah)"/><path class="arr" d="M368 68H394" marker-end="url(#ah)"/><path class="arr" d="M562 68H588" marker-end="url(#ah)"/><path class="arr" d="M756 68H782" marker-end="url(#ah)"/>
+      </g>
+      <text x="10" y="162" class="t-h" style="fill:var(--cyan)">PATH B · Hugging Face TRL (you own the loop)</text>
+      <g>
+        <rect class="box" x="10" y="174" width="146" height="76" rx="10"/><text x="83" y="206" text-anchor="middle" class="t-h">Dataset</text><text x="83" y="226" text-anchor="middle" class="t-sub">messages / pairs</text>
+        <rect class="box" x="176" y="174" width="146" height="76" rx="10" style="stroke:var(--cyan)"/><text x="249" y="206" text-anchor="middle" class="t-h">SFTTrainer</text><text x="249" y="226" text-anchor="middle" class="t-sub">LoRA / QLoRA</text>
+        <rect class="box" x="342" y="174" width="146" height="76" rx="10" style="stroke:var(--pink)"/><text x="415" y="206" text-anchor="middle" class="t-h">DPO / ORPO</text><text x="415" y="226" text-anchor="middle" class="t-sub">preference align</text>
+        <rect class="box" x="508" y="174" width="146" height="76" rx="10"/><text x="581" y="206" text-anchor="middle" class="t-h">Merge adapter</text><text x="581" y="226" text-anchor="middle" class="t-sub">merge_and_unload</text>
+        <rect class="box" x="674" y="174" width="146" height="76" rx="10"/><text x="747" y="206" text-anchor="middle" class="t-h">Quantize</text><text x="747" y="226" text-anchor="middle" class="t-sub">GGUF / GPTQ / AWQ</text>
+        <rect class="box" x="840" y="174" width="110" height="76" rx="10" style="stroke:var(--green)"/><text x="895" y="206" text-anchor="middle" class="t-h">Serve</text><text x="895" y="226" text-anchor="middle" class="t-sub">vLLM / CMI</text>
+        <path class="arr" d="M156 212H172" marker-end="url(#ah)"/><path class="arr" d="M322 212H338" marker-end="url(#ah)"/><path class="arr" d="M488 212H504" marker-end="url(#ah)"/><path class="arr" d="M654 212H670" marker-end="url(#ah)"/><path class="arr" d="M820 212H836" marker-end="url(#ah)"/>
+      </g>
+      <path class="arr" d="M747 252V290H480" stroke-dasharray="4 4"/>
+      <text x="480" y="312" text-anchor="middle" class="t-sub">Bridge: safetensors (merged, unquantized) → Bedrock Custom Model Import</text>
+    </svg>
+    <figcaption>fig 1 · managed job vs self-managed training, and where they connect</figcaption>
+  </figure>
+
+  <article class="card" data-k="bedrock customization s3 iam role provisioned throughput agentcore job">
+    <h3>Amazon Bedrock customization</h3>
+    <p class="meta">control plane: <code>bedrock</code> · inference plane: <code>bedrock-runtime</code></p>
+    <p>You supply data, a role and hyperparameters. AWS provisions the training compute, runs the job, and returns a <strong>custom model ARN</strong>. You never see GPUs, containers or the training loop.</p>
+    <div class="stack"><span>FINE_TUNING</span><span>CONTINUED_PRE_TRAINING</span><span>DISTILLATION</span><span>KMS</span><span>VPC config</span><span>output metrics in S3</span></div>
+
+    <h4>Step 1 · Dataset layout in S3</h4>
+    <div class="win"><div class="win-head"><i style="background:var(--pink)"></i><i style="background:var(--yellow)"></i><i style="background:var(--green)"></i><span class="fname">terminal · s3 layout</span><button class="copy">copy</button></div>
+<pre><code data-lang="sh"># keep train / val / output in separate prefixes
+aws s3 cp train.jsonl s3://$BUCKET/ft/train/train.jsonl
+aws s3 cp val.jsonl   s3://$BUCKET/ft/val/val.jsonl
+# the job writes loss metrics + artifacts under:
+#   s3://$BUCKET/ft/output/&lt;job-id&gt;/</code></pre></div>
+
+    <h4>Step 2 · IAM execution role</h4>
+    <p>Trust policy lets <code>bedrock.amazonaws.com</code> assume the role. Scope it with source-account and source-ARN conditions. Permissions policy needs read on train/val prefixes and write on the output prefix.</p>
+    <div class="win"><div class="win-head"><i style="background:var(--pink)"></i><i style="background:var(--yellow)"></i><i style="background:var(--green)"></i><span class="fname">trust-policy.json</span><button class="copy">copy</button></div>
+<pre><code data-lang="json">{
+  "Version": "2012-10-17",
+  "Statement": [{
+    "Effect": "Allow",
+    "Principal": { "Service": "bedrock.amazonaws.com" },
+    "Action": "sts:AssumeRole",
+    "Condition": {
+      "StringEquals": { "aws:SourceAccount": "&lt;ACCOUNT_ID&gt;" },
+      "ArnEquals": { "aws:SourceArn": "arn:aws:bedrock:us-east-1:&lt;ACCOUNT_ID&gt;:model-customization-job/*" }
+    }
+  }]
+}
+// permissions: s3:GetObject + s3:ListBucket on ft/train, ft/val
+//              s3:PutObject + s3:GetObject + s3:ListBucket on ft/output</code></pre></div>
+
+    <h4>Step 3 · Provision the job, then serve it</h4>
+    <div class="win"><div class="win-head"><i style="background:var(--pink)"></i><i style="background:var(--yellow)"></i><i style="background:var(--green)"></i><span class="fname">bedrock_customize.py</span><button class="copy">copy</button></div>
+<pre><code data-lang="py">import boto3, time
+bedrock = boto3.client("bedrock", region_name="us-east-1")
+
+# which base models can be fine-tuned in this region?
+ok = bedrock.list_foundation_models(byCustomizationType="FINE_TUNING")["modelSummaries"]
+
+job = bedrock.create_model_customization_job(
+    jobName="ft-support-v1",
+    customModelName="support-assistant-v1",
+    roleArn="arn:aws:iam::&lt;ACCOUNT_ID&gt;:role/BedrockCustomizationRole",
+    baseModelIdentifier="&lt;BASE_MODEL_ID_FROM_LIST_ABOVE&gt;",
+    customizationType="FINE_TUNING",
+    trainingDataConfig={"s3Uri": "s3://BUCKET/ft/train/train.jsonl"},
+    validationDataConfig={"validators": [{"s3Uri": "s3://BUCKET/ft/val/val.jsonl"}]},
+    outputDataConfig={"s3Uri": "s3://BUCKET/ft/output/"},
+    hyperParameters={            # values are STRINGS; names vary per base model
+        "epochCount": "2",
+        "batchSize": "1",
+        "learningRate": "0.00001",
+        "learningRateWarmupSteps": "5",
+    },
+)
+
+while True:
+    s = bedrock.get_model_customization_job(jobIdentifier=job["jobArn"])
+    if s["status"] in ("Completed", "Failed", "Stopped"): break
+    time.sleep(60)
+
+# custom models are served through Provisioned Throughput
+pt = bedrock.create_provisioned_model_throughput(
+    provisionedModelName="support-assistant-v1-pt",
+    modelId=s["outputModelArn"],
+    modelUnits=1,                # add commitmentDuration="OneMonth" | "SixMonths" for discount
+)
+# then: bedrock-runtime.converse(modelId=pt["provisionedModelArn"], ...)</code></pre></div>
+
+    <div class="callout" style="--c:var(--purple)"><b>// verify per model</b>Which base models support fine-tuning, which hyperparameters they expose, and whether a given custom model needs Provisioned Throughput or has an on-demand option all depend on the base model and region. Always start from <code>list_foundation_models</code> and the current model-customization docs.</div>
+
+    <h4>Managed job vs AWS Serverless AgentCore</h4>
+    <p>These are different layers. A customization job <strong>changes the model</strong>. Amazon Bedrock AgentCore is a serverless runtime for <strong>hosting agents</strong> (runtime, identity, gateway, memory, observability). It does not train anything. They meet at the end: the agent running in AgentCore calls your custom model ARN as its reasoning engine.</p>
+    <div class="tbl"><table>
+      <thead><tr><th>Dimension</th><th>Bedrock customization job</th><th>AgentCore pattern</th></tr></thead>
+      <tbody>
+        <tr><th>What it changes</th><td>Model behavior (adapter / weights owned by AWS)</td><td>Agent runtime, tools, memory, identity</td></tr>
+        <tr><th>Lifecycle</th><td>Batch: minutes to hours, then done</td><td>Long-running, per-session, event-driven</td></tr>
+        <tr><th>Billing</th><td>Training tokens × epochs, then Provisioned Throughput for serving</td><td>Consumption on runtime / gateway / memory usage</td></tr>
+        <tr><th>You own</th><td>Dataset, hyperparameters, evals</td><td>Agent code, tool schemas, guardrails</td></tr>
+        <tr><th>Together</th><td colspan="2">Train with a job → deploy custom ARN → agent in AgentCore calls it via Converse. Eval-gate the swap before pointing the agent at the new ARN.</td></tr>
+      </tbody>
+    </table></div>
+  </article>
+
+  <article class="card" data-k="trl sfttrainer reward trainer dpo orpo grpo preference">
+    <h3>Hugging Face TRL</h3>
+    <p class="meta">library: <code>trl</code> · builds on <code>transformers</code>, <code>peft</code>, <code>accelerate</code>, <code>datasets</code></p>
+    <p>TRL is a set of trainers, each with a matching <code>*Config</code> (a subclass of <code>TrainingArguments</code>). You pick the trainer that matches your data shape and objective, then compose the stages.</p>
+    <div class="tbl"><table>
+      <thead><tr><th>Trainer</th><th>Config</th><th>Stage</th><th>Dataset shape</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><th><code>SFTTrainer</code></th><td><code>SFTConfig</code></td><td>Supervised fine-tuning</td><td><code>messages</code> or <code>prompt</code>/<code>completion</code></td><td>Applies chat template, optional packing, accepts <code>peft_config</code>. Start here.</td></tr>
+        <tr><th><code>RewardTrainer</code></th><td><code>RewardConfig</code></td><td>Reward modeling (RLHF step 2)</td><td><code>chosen</code> / <code>rejected</code></td><td>Model is a sequence classifier with <code>num_labels=1</code>. Output is a scalar reward.</td></tr>
+        <tr><th><code>DPOTrainer</code></th><td><code>DPOConfig</code></td><td>Preference alignment, no reward model</td><td><code>prompt</code> / <code>chosen</code> / <code>rejected</code></td><td><code>beta</code> controls drift from the reference model. With PEFT, the reference is the base with adapter disabled.</td></tr>
+        <tr><th><code>ORPOTrainer</code></th><td><code>ORPOConfig</code></td><td>SFT + preference in one pass</td><td><code>prompt</code> / <code>chosen</code> / <code>rejected</code></td><td>No reference model, so less memory and one training stage.</td></tr>
+        <tr><th><code>GRPOTrainer</code></th><td><code>GRPOConfig</code></td><td>Online RL with verifiable rewards</td><td><code>prompt</code> + reward function(s)</td><td>Use when you can score outputs programmatically (code, math, schema validity).</td></tr>
+      </tbody>
+    </table></div>
+
+    <h4>Preference-alignment skeletons</h4>
+    <div class="win"><div class="win-head"><i style="background:var(--pink)"></i><i style="background:var(--yellow)"></i><i style="background:var(--green)"></i><span class="fname">trl_alignment.py</span><button class="copy">copy</button></div>
+<pre><code data-lang="py">from trl import DPOConfig, DPOTrainer, ORPOConfig, ORPOTrainer, RewardConfig, RewardTrainer
+
+# DPO: start from the SFT checkpoint, low LR, beta ~0.1
+dpo_cfg = DPOConfig(output_dir="out/dpo", beta=0.1, learning_rate=5e-6,
+                    per_device_train_batch_size=2, gradient_accumulation_steps=8,
+                    num_train_epochs=1, lr_scheduler_type="cosine", warmup_ratio=0.1,
+                    bf16=True, logging_steps=10, eval_strategy="steps", eval_steps=100)
+DPOTrainer(model=sft_model, ref_model=None,       # None + peft_config → adapter-off reference
+           args=dpo_cfg, train_dataset=prefs_train, eval_dataset=prefs_val,
+           processing_class=tok, peft_config=lora).train()
+
+# ORPO: one stage, no reference model
+orpo_cfg = ORPOConfig(output_dir="out/orpo", beta=0.1, learning_rate=8e-6, bf16=True)
+ORPOTrainer(model=base_model, args=orpo_cfg, train_dataset=prefs_train,
+            processing_class=tok, peft_config=lora).train()
+
+# Reward model (classic RLHF input): AutoModelForSequenceClassification(num_labels=1)
+rm_cfg = RewardConfig(output_dir="out/rm", learning_rate=1e-5, bf16=True)
+RewardTrainer(model=rm_model, args=rm_cfg, train_dataset=prefs_train,
+              processing_class=tok).train()</code></pre></div>
+    <div class="callout" style="--c:var(--purple)"><b>// verify per version</b>TRL moves fast: the tokenizer argument is now <code>processing_class</code>, and options like <code>max_length</code> vs <code>max_seq_length</code> have changed across releases. Pin your version and check its docs.</div>
+  </article>
+
+  <article class="card" data-k="comparison table bedrock trl compute models alignment deployment">
+    <h3>Framework comparison</h3>
+    <p class="meta">pick by control needed, not by habit</p>
+    <div class="tbl"><table>
+      <thead><tr><th>Dimension</th><th>Amazon Bedrock native customization</th><th>Hugging Face TRL</th></tr></thead>
+      <tbody>
+        <tr><th>Compute / hardware control</th><td>None. AWS picks and bills the compute. You set data and hyperparameters only.</td><td>Full. Choose GPU type, count, precision, FSDP/DeepSpeed, SageMaker, EC2, on-prem or Colab.</td></tr>
+        <tr><th>Supported base models</th><td>A curated list of Bedrock-hosted models (e.g. Amazon Nova, some Titan, Llama, Claude variants) <span class="ver">varies by region</span></td><td>Any open-weight causal LM on the Hub or local disk (Llama, Qwen, Mistral, Gemma, etc.).</td></tr>
+        <tr><th>Alignment (RLHF / DPO)</th><td>Primarily SFT-style fine-tuning, continued pre-training and distillation. Preference or RL-style options exist only for select models <span class="ver">verify</span></td><td>SFT, reward modeling, DPO, ORPO, KTO, GRPO and PPO-style trainers. Mix and sequence freely.</td></tr>
+        <tr><th>Deployment workflow</th><td>Custom model ARN → Provisioned Throughput (or on-demand where supported) → <code>InvokeModel</code>/<code>Converse</code>. IAM, VPC, guardrails and logging come built in.</td><td>Merge adapter → quantize → serve with vLLM/TGI/llama.cpp/SageMaker, or import safetensors via Bedrock Custom Model Import.</td></tr>
+        <tr><th>Time to first tuned model</th><td>Hours: write JSONL, call API.</td><td>Days: environment, training code, infra, serving.</td></tr>
+        <tr><th>Best fit</th><td>Teams standardized on AWS who want governance and low ops.</td><td>Teams needing open weights, custom objectives, or portability.</td></tr>
+      </tbody>
+    </table></div>
+  </article>
+</section>
+
+<!-- ================= 2 ================= -->
+<section class="sec" id="s2" style="--c:var(--cyan)">
+  <div class="sec-head">
+    <p class="sec-num">// 02</p>
+    <h2 class="title">Core ML &amp; PEFT architecture</h2>
+    <p>Parameter-efficient fine-tuning trains a tiny set of new weights and leaves the pre-trained model frozen. Cheaper, faster, and far less likely to overwrite what the model already knows.</p>
+  </div>
+
+  <article class="card" style="--c:var(--cyan)" data-k="transfer learning pre-trained base logic bedrock trl layers">
+    <h3>Transfer learning &amp; base implementations</h3>
+    <p class="meta">the base model carries the logic; tuning only nudges it</p>
+    <p>A pre-trained foundation model already encodes language, world knowledge and reasoning patterns. Fine-tuning does not teach those from scratch. It shifts the output distribution toward your domain, format and style using far less data than pre-training.</p>
+    <div class="tbl"><table>
+      <thead><tr><th>Concern</th><th>Bedrock</th><th>Hugging Face TRL</th></tr></thead>
+      <tbody>
+        <tr><th>Model access</th><td>Opaque. You name a <code>baseModelIdentifier</code>; weights are never exposed.</td><td>Explicit. <code>AutoModelForCausalLM</code> loads every layer; you can inspect, freeze or swap them.</td></tr>
+        <tr><th>What gets trained</th><td>Decided by AWS for that base model.</td><td>You choose layers via <code>target_modules</code>, rank, dropout, full vs PEFT.</td></tr>
+        <tr><th>Pipeline shape</th><td>Single API call, isolated managed pipeline.</td><td>Composable stages: SFT → preference → merge → quantize.</td></tr>
+        <tr><th>Debugging</th><td>Loss CSVs in S3; limited visibility.</td><td>Per-step logs, gradient norms, checkpoints, custom callbacks.</td></tr>
+      </tbody>
+    </table></div>
+  </article>
+
+  <article class="card" style="--c:var(--cyan)" data-k="lora qlora peft bitsandbytes nf4 sfttrainer loraconfig adapter rank">
+    <h3>LoRA &amp; QLoRA configuration</h3>
+    <p class="meta">W′ = W + (α / r) · B·A &nbsp;·&nbsp; W frozen, only A and B train</p>
+
+    <figure class="diagram" style="margin-top:6px">
+      <svg viewBox="0 0 760 240" role="img" aria-label="LoRA: frozen weight matrix plus low-rank adapter A and B">
+        <defs><marker id="ah2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="#c1b8c8"/></marker></defs>
+        <text x="40" y="22" class="t-sub">input x (d)</text>
+        <path class="arr" d="M80 30V70" marker-end="url(#ah2)"/>
+        <path class="arr" d="M80 50H190V70" marker-end="url(#ah2)"/>
+        <rect class="box" x="30" y="72" width="190" height="110" rx="10" style="stroke:var(--soft)"/>
+        <text x="125" y="120" text-anchor="middle" class="t-h">W  (d × d)</text>
+        <text x="125" y="142" text-anchor="middle" class="t-sub">pre-trained · FROZEN</text>
+        <text x="125" y="160" text-anchor="middle" class="t-sub">4-bit NF4 under QLoRA</text>
+        <rect class="box" x="300" y="72" width="70" height="110" rx="8" style="stroke:var(--cyan)"/>
+        <text x="335" y="120" text-anchor="middle" class="t-h">A</text><text x="335" y="140" text-anchor="middle" class="t-sub">r × d</text><text x="335" y="158" text-anchor="middle" class="t-sub">trainable</text>
+        <rect class="box" x="420" y="100" width="70" height="54" rx="8" style="stroke:var(--cyan)"/>
+        <text x="455" y="124" text-anchor="middle" class="t-h">B</text><text x="455" y="142" text-anchor="middle" class="t-sub">d × r</text>
+        <path class="arr" d="M370 127H416" marker-end="url(#ah2)"/>
+        <path class="arr" d="M80 50H280V127H300" marker-end="url(#ah2)"/>
+        <circle cx="580" cy="127" r="22" class="box" style="stroke:var(--yellow)"/><text x="580" y="133" text-anchor="middle" class="t-h">+</text>
+        <path class="arr" d="M220 170H580V149" marker-end="url(#ah2)"/>
+        <path class="arr" d="M490 127H556" marker-end="url(#ah2)" style="stroke:var(--cyan)"/>
+        <path class="arr" d="M602 127H690" marker-end="url(#ah2)"/><text x="712" y="131" text-anchor="middle" class="t-sub">out</text>
+        <text x="380" y="216" text-anchor="middle" class="t-sub">trainable ≈ 2·r·d per matrix → typically &lt; 1% of parameters</text>
+      </svg>
+      <figcaption>fig 2 · LoRA adds a low-rank bypass; the original weight never changes</figcaption>
+    </figure>
+
+    <h4>TRL + peft + bitsandbytes (QLoRA, 4-bit NF4)</h4>
+    <div class="win"><div class="win-head"><i style="background:var(--pink)"></i><i style="background:var(--yellow)"></i><i style="background:var(--green)"></i><span class="fname">qlora_sft.py</span><button class="copy">copy</button></div>
+<pre><code data-lang="py">import torch
+from datasets import load_dataset
+from peft import LoraConfig
+from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
+from trl import SFTConfig, SFTTrainer
+
+MODEL = "meta-llama/Llama-3.1-8B-Instruct"
+
+bnb = BitsAndBytesConfig(
+    load_in_4bit=True,
+    bnb_4bit_quant_type="nf4",            # NormalFloat4
+    bnb_4bit_use_double_quant=True,       # quantize the quant constants too
+    bnb_4bit_compute_dtype=torch.bfloat16,
+)
+tok = AutoTokenizer.from_pretrained(MODEL)
+tok.pad_token = tok.pad_token or tok.eos_token
+
+model = AutoModelForCausalLM.from_pretrained(
+    MODEL, quantization_config=bnb, device_map="auto", torch_dtype=torch.bfloat16)
+
+lora = LoraConfig(
+    r=16,                                 # rank: 8-64 typical
+    lora_alpha=32,                        # scale = alpha / r  (2x rank is a common start)
+    lora_dropout=0.05,
+    bias="none",
+    task_type="CAUSAL_LM",
+    target_modules=["q_proj","k_proj","v_proj","o_proj",
+                    "gate_proj","up_proj","down_proj"],   # all linear = best quality
+)
+
+cfg = SFTConfig(
+    output_dir="out/sft",
+    num_train_epochs=2,
+    per_device_train_batch_size=4,
+    gradient_accumulation_steps=8,        # effective batch = 4 x 8 x n_gpus
+    learning_rate=2e-4,                   # LoRA tolerates ~10x full-FT LR
+    lr_scheduler_type="cosine",
+    warmup_ratio=0.03,
+    optim="paged_adamw_8bit",
+    bf16=True,
+    gradient_checkpointing=True,
+    logging_steps=10,
+    eval_strategy="steps", eval_steps=50,
+    save_strategy="steps", save_steps=50, save_total_limit=3,
+    load_best_model_at_end=True, metric_for_best_model="eval_loss",
+    report_to="wandb",
+    packing=False,
+)
+
+train = load_dataset("json", data_files="train.jsonl", split="train")
+val   = load_dataset("json", data_files="val.jsonl",   split="train")
+
+trainer = SFTTrainer(model=model, args=cfg, train_dataset=train, eval_dataset=val,
+                     peft_config=lora, processing_class=tok)
+trainer.train()
+trainer.save_model("out/sft/adapter")     # adapter only: tens of MB</code></pre></div>
+
+    <div class="grid2" style="margin-top:6px">
+      <div class="callout" style="--c:var(--cyan);margin:0"><b>// knobs</b><strong>r</strong> sets adapter capacity. <strong>alpha</strong> scales its influence. <strong>target_modules</strong> decides where it attaches. Raise rank only if the loss plateaus high. Keep the base model's <code>pad_token</code> and chat template consistent with inference.</div>
+      <div class="callout" style="--c:var(--yellow);margin:0"><b>// QLoRA vs LoRA</b>QLoRA stores the frozen base in 4-bit to fit large models on one GPU, at a modest speed cost. If the model fits in bf16, plain LoRA is faster and slightly cleaner.</div>
+    </div>
+
+    <h4>How Bedrock handles LoRA internally</h4>
+    <ul>
+      <li><strong>Base weights stay static.</strong> Your job never rewrites the foundation model; what you receive is a customized variant tied to that base.</li>
+      <li><strong>AWS manages the adapter.</strong> For models where Bedrock uses parameter-efficient methods, rank, target layers and optimizer details are chosen by the service. You influence them only through the exposed hyperparameters <span class="ver">some Nova models expose an adapter-rank style setting; verify</span>.</li>
+      <li><strong>Artifacts stay in AWS-managed storage.</strong> You get a custom model ARN plus metrics written to your output S3 prefix, not downloadable weights.</li>
+      <li><strong>Portability trade-off.</strong> Bedrock-customized models run only on Bedrock. If you need to move, train with TRL and import the merged safetensors instead.</li>
+    </ul>
+  </article>
+
+  <article class="card" style="--c:var(--cyan)" data-k="pytorch torch training loop autocast ddp fsdp torchrun compile checkpointing lora from scratch autograd">
+    <h3>PyTorch under the hood</h3>
+    <p class="meta">TRL and <code>transformers.Trainer</code> are thin layers over PyTorch · Bedrock exposes none of this</p>
+    <p>Every TRL trainer ends up running the same PyTorch loop: forward pass, loss on label tokens, <code>backward()</code>, optimizer step, scheduler step. Knowing the primitives lets you debug OOMs, NaNs and slow throughput, and drop to custom losses when a stock trainer does not fit.</p>
+
+    <h4>TRL argument ↔ PyTorch primitive</h4>
+    <div class="tbl"><table>
+      <thead><tr><th>You set (TRL / Trainer)</th><th>PyTorch primitive underneath</th><th>Why it matters</th></tr></thead>
+      <tbody>
+        <tr><th><code>bf16=True</code></th><td><code>torch.autocast("cuda", dtype=torch.bfloat16)</code></td><td>Half the activation memory; bf16 avoids fp16 loss-scaling and overflow.</td></tr>
+        <tr><th><code>gradient_accumulation_steps</code></th><td>Divide loss by N, call <code>backward()</code> N times, then <code>optimizer.step()</code></td><td>Large effective batch on small VRAM.</td></tr>
+        <tr><th><code>gradient_checkpointing</code></th><td><code>torch.utils.checkpoint</code></td><td>Recompute activations in backward: ~30% slower, far less memory.</td></tr>
+        <tr><th><code>max_grad_norm</code></th><td><code>torch.nn.utils.clip_grad_norm_</code></td><td>First defense against loss spikes.</td></tr>
+        <tr><th><code>optim</code>, <code>learning_rate</code></th><td><code>torch.optim.AdamW</code> (or bitsandbytes paged / 8-bit variants)</td><td>Optimizer state is often 2x the trainable params; LoRA shrinks it.</td></tr>
+        <tr><th><code>lr_scheduler_type</code>, <code>warmup_ratio</code></th><td><code>torch.optim.lr_scheduler.LambdaLR</code> via <code>get_cosine_schedule_with_warmup</code></td><td>Warmup protects fresh adapter weights.</td></tr>
+        <tr><th>Multi-GPU launch</th><td><code>DistributedDataParallel</code> (replicate) or <code>FSDP</code> (shard params, grads, optimizer)</td><td>DDP when the model fits per GPU; FSDP when it does not.</td></tr>
+        <tr><th><code>torch_compile=True</code></th><td><code>torch.compile(model)</code></td><td>Kernel fusion for throughput; adds warmup time and can break on dynamic shapes.</td></tr>
+        <tr><th><code>attn_implementation="sdpa"</code></th><td><code>F.scaled_dot_product_attention</code></td><td>Fused / flash-style attention kernels without extra installs.</td></tr>
+        <tr><th><code>seed</code></th><td><code>torch.manual_seed</code></td><td>Reproducible runs; still non-deterministic across kernels.</td></tr>
+      </tbody>
+    </table></div>
+
+    <h4>The minimal loop (what <code>trainer.train()</code> does)</h4>
+    <div class="win"><div class="win-head"><i style="background:var(--pink)"></i><i style="background:var(--yellow)"></i><i style="background:var(--green)"></i><span class="fname">pytorch_sft_loop.py</span><button class="copy">copy</button></div>
+<pre><code data-lang="py">import math, torch
+from transformers import get_cosine_schedule_with_warmup
+
+# labels = input_ids copy with prompt / padding positions set to -100 (ignored by the loss)
+# so you train only on assistant tokens
+model.train()
+params = [p for p in model.parameters() if p.requires_grad]   # LoRA params only
+opt = torch.optim.AdamW(params, lr=2e-4, weight_decay=0.0)
+
+ACCUM, EPOCHS = 8, 2
+total = (len(train_loader) // ACCUM) * EPOCHS
+sched = get_cosine_schedule_with_warmup(opt, int(0.03 * total), total)
+
+for epoch in range(EPOCHS):
+    for i, batch in enumerate(train_loader):       # input_ids, attention_mask, labels
+        batch = {k: v.to(model.device) for k, v in batch.items()}
+        with torch.autocast("cuda", dtype=torch.bfloat16):
+            loss = model(**batch).loss / ACCUM      # HF shifts labels + masks -100 internally
+        loss.backward()
+        if (i + 1) % ACCUM == 0:
+            torch.nn.utils.clip_grad_norm_(params, 1.0)
+            opt.step(); sched.step()
+            opt.zero_grad(set_to_none=True)
+
+# validation: no grads, eval mode, perplexity = exp(mean loss)
+model.eval()
+with torch.no_grad():
+    losses = [model(**{k: v.to(model.device) for k, v in b.items()}).loss.item() for b in val_loader]
+print("val loss", sum(losses) / len(losses), "ppl", math.exp(sum(losses) / len(losses)))</code></pre></div>
+
+    <h4>LoRA from scratch (to see what <code>peft</code> injects)</h4>
+    <div class="win"><div class="win-head"><i style="background:var(--pink)"></i><i style="background:var(--yellow)"></i><i style="background:var(--green)"></i><span class="fname">lora_linear.py</span><button class="copy">copy</button></div>
+<pre><code data-lang="py">import math, torch, torch.nn as nn
+
+class LoRALinear(nn.Module):
+    def __init__(self, base: nn.Linear, r=16, alpha=32, dropout=0.05):
+        super().__init__()
+        self.base = base
+        for p in self.base.parameters():
+            p.requires_grad_(False)                       # W stays frozen
+        self.A = nn.Parameter(torch.empty(r, base.in_features))
+        self.B = nn.Parameter(torch.zeros(base.out_features, r))   # zero init: starts == base model
+        nn.init.kaiming_uniform_(self.A, a=math.sqrt(5))
+        self.scale, self.drop = alpha / r, nn.Dropout(dropout)
+
+    def forward(self, x):
+        return self.base(x) + (self.drop(x) @ self.A.T @ self.B.T) * self.scale
+
+# swap target projections in place, then count what trains
+# trainable = sum(p.numel() for p in model.parameters() if p.requires_grad)</code></pre></div>
+
+    <h4>Scaling out &amp; saving</h4>
+    <div class="win"><div class="win-head"><i style="background:var(--pink)"></i><i style="background:var(--yellow)"></i><i style="background:var(--green)"></i><span class="fname">terminal · launch + checkpoints</span><button class="copy">copy</button></div>
+<pre><code data-lang="sh"># single node, 8 GPUs, plain PyTorch distributed
+torchrun --nproc_per_node=8 train.py
+
+# same script through accelerate (DDP / FSDP / DeepSpeed picked from config)
+accelerate launch --config_file fsdp.yaml train.py
+
+# adapter-only checkpoint (small): model.save_pretrained("out/adapter")
+# raw PyTorch alternative: torch.save({k: v for k, v in model.state_dict().items() if "lora" in k}, "adapter.pt")</code></pre></div>
+
+    <div class="grid2" style="margin-top:6px">
+      <div class="callout" style="--c:var(--cyan);margin:0"><b>// when to drop to raw PyTorch</b>Custom losses (e.g. weighted tokens, auxiliary penalties), unusual data collation, research-style RL loops, or profiling a throughput bottleneck. Otherwise stay on TRL and read the trainer source when behavior surprises you.</div>
+      <div class="callout" style="--c:var(--yellow);margin:0"><b>// Bedrock boundary</b>Bedrock never runs your PyTorch code. The only bridge is exporting Hugging Face-format safetensors; a raw <code>.pt</code> state dict cannot be imported, so save through <code>save_pretrained</code> before shipping.</div>
+    </div>
+    <div class="stack"><span>torch.autocast</span><span>torch.compile</span><span>DDP</span><span>FSDP</span><span>torchrun</span><span>torch.profiler</span><span>checkpoint</span></div>
+  </article>
+
+  <article class="card" style="--c:var(--cyan)" data-k="catastrophic forgetting mitigation mixed task replay beta kl penalty">
+    <h3>Catastrophic forgetting mitigation</h3>
+    <p class="meta">narrow training can erase general ability: protect it deliberately</p>
+    <div class="grid2" style="margin-top:6px">
+      <div style="padding:0">
+        <h4 style="margin-top:0;color:var(--cyan)">1 · Mixed-task balancing (replay)</h4>
+        <p>Blend general-purpose and previously-learned tasks into every epoch so gradients never see only the new domain.</p>
+      </div>
+      <div style="padding:0">
+        <h4 style="margin-top:0;color:var(--pink)">2 · Constrain the update</h4>
+        <p>Low rank, fewer target modules, smaller LR, 1 to 3 epochs, early stopping on a general-capability eval.</p>
+      </div>
+    </div>
+    <h4>3 · Alignment penalty as an anchor</h4>
+    <p>In DPO the <code>beta</code> term penalizes drifting from the reference policy (a KL-style constraint). Higher beta stays closer to the SFT model. In ORPO, the SFT loss term keeps outputs grounded in the preferred completions.</p>
+    <div class="win"><div class="win-head"><i style="background:var(--pink)"></i><i style="background:var(--yellow)"></i><i style="background:var(--green)"></i><span class="fname">mix_tasks.py</span><button class="copy">copy</button></div>
+<pre><code data-lang="py">from datasets import load_dataset, interleave_datasets
+
+domain  = load_dataset("json", data_files="domain.jsonl",  split="train")  # your target task
+general = load_dataset("json", data_files="general.jsonl", split="train")  # instruction-following replay
+guard   = load_dataset("json", data_files="safety.jsonl",  split="train")  # refusals / format guards
+
+# keep every source in the same schema first (e.g. all "messages")
+mix = interleave_datasets(
+    [domain, general, guard],
+    probabilities=[0.70, 0.20, 0.10],     # 10-30% replay is a common range
+    seed=42, stopping_strategy="all_exhausted")
+
+# regression gate: run the SAME general eval on base and tuned; block if drop &gt; threshold
+# DPO anchor:  DPOConfig(beta=0.1 → 0.3) to tighten drift from the reference</code></pre></div>
+    <div class="callout" style="--c:var(--green)"><b>// Bedrock equivalent</b>No replay sampler, so build the mixture into the JSONL yourself, keep epochs low, keep the learning rate at the lower end of the documented range, and compare the custom ARN against the base model on a general eval before promoting.</div>
+  </article>
+</section>
+
+<!-- ================= 3 ================= -->
+<section class="sec" id="s3" style="--c:var(--pink)">
+  <div class="sec-head">
+    <p class="sec-num">// 03</p>
+    <h2 class="title">ML engineering toolkit &amp; data formats</h2>
+    <p>Schemas, hyperparameter mapping, loss-curve reading, export formats and evaluation harnesses. Everything you need between "I have data" and "it is in production".</p>
+  </div>
+
+  <article class="card" style="--c:var(--pink)" data-k="dataset jsonl schema bedrock prompt completion converse messages chatml llama-3 trl format">
+    <h3>Dataset curation &amp; schema templates</h3>
+    <p class="meta">one example per line · UTF-8 · no trailing commas · same schema throughout</p>
+    <div class="grid2" style="margin-top:6px">
+      <div>
+        <h4 style="margin-top:0;color:var(--yellow)">Bedrock · prompt / completion</h4>
+        <p>Used by several text models <span class="ver">verify per model</span>.</p>
+        <div class="win" style="margin-bottom:0"><div class="win-head"><i style="background:var(--pink)"></i><i style="background:var(--yellow)"></i><i style="background:var(--green)"></i><span class="fname">train.jsonl</span><button class="copy">copy</button></div>
+<pre><code data-lang="none">{"prompt": "Classify the ticket: 'Card declined at checkout'", "completion": "category: payments"}
+{"prompt": "Classify the ticket: 'Cannot reset password'", "completion": "category: account_access"}</code></pre></div>
+      </div>
+      <div>
+        <h4 style="margin-top:0;color:var(--yellow)">Bedrock · Converse-style chat</h4>
+        <p>Used by newer chat models such as Nova <span class="ver">verify per model</span>.</p>
+        <div class="win" style="margin-bottom:0"><div class="win-head"><i style="background:var(--pink)"></i><i style="background:var(--yellow)"></i><i style="background:var(--green)"></i><span class="fname">train.jsonl</span><button class="copy">copy</button></div>
+<pre><code data-lang="none">{"schemaVersion": "bedrock-conversation-2024",
+ "system": [{"text": "You are a concise support triage bot."}],
+ "messages": [
+  {"role": "user", "content": [{"text": "Card declined at checkout"}]},
+  {"role": "assistant", "content": [{"text": "category: payments"}]}]}</code></pre></div>
+      </div>
+    </div>
+
+    <div class="grid2" style="margin-top:18px">
+      <div>
+        <h4 style="margin-top:0;color:var(--cyan)">TRL · conversational <code>messages</code></h4>
+        <p>The tokenizer's chat template renders it to ChatML, Llama-3 or any other format at train time.</p>
+        <div class="win" style="margin-bottom:0"><div class="win-head"><i style="background:var(--pink)"></i><i style="background:var(--yellow)"></i><i style="background:var(--green)"></i><span class="fname">train.jsonl</span><button class="copy">copy</button></div>
+<pre><code data-lang="none">{"messages": [
+  {"role": "system", "content": "You are a concise support triage bot."},
+  {"role": "user", "content": "Card declined at checkout"},
+  {"role": "assistant", "content": "category: payments"}]}</code></pre></div>
+      </div>
+      <div>
+        <h4 style="margin-top:0;color:var(--pink)">TRL · preference pairs (DPO / ORPO / Reward)</h4>
+        <p>Chosen and rejected must share the same prompt.</p>
+        <div class="win" style="margin-bottom:0"><div class="win-head"><i style="background:var(--pink)"></i><i style="background:var(--yellow)"></i><i style="background:var(--green)"></i><span class="fname">prefs.jsonl</span><button class="copy">copy</button></div>
+<pre><code data-lang="none">{"prompt": [{"role": "user", "content": "Summarize in one line: ..."}],
+ "chosen":   [{"role": "assistant", "content": "Revenue up 12% on enterprise demand."}],
+ "rejected": [{"role": "assistant", "content": "The company did things this quarter."}]}</code></pre></div>
+      </div>
+    </div>
+
+    <h4>Rendered templates (what the model actually sees)</h4>
+    <div class="win"><div class="win-head"><i style="background:var(--pink)"></i><i style="background:var(--yellow)"></i><i style="background:var(--green)"></i><span class="fname">chat_templates.txt</span></div>
+<pre><code data-lang="none"># ChatML
+&lt;|im_start|&gt;system
+You are a concise support triage bot.&lt;|im_end|&gt;
+&lt;|im_start|&gt;user
+Card declined at checkout&lt;|im_end|&gt;
+&lt;|im_start|&gt;assistant
+category: payments&lt;|im_end|&gt;
+
+# Llama-3
+&lt;|begin_of_text|&gt;&lt;|start_header_id|&gt;system&lt;|end_header_id|&gt;
+
+You are a concise support triage bot.&lt;|eot_id|&gt;&lt;|start_header_id|&gt;user&lt;|end_header_id|&gt;
+
+Card declined at checkout&lt;|eot_id|&gt;&lt;|start_header_id|&gt;assistant&lt;|end_header_id|&gt;
+
+category: payments&lt;|eot_id|&gt;</code></pre></div>
+
+    <h4>Curation checklist</h4>
+    <ul>
+      <li><strong>Consistency:</strong> same output format, tone and labels for the same input type. Contradictory examples cap quality.</li>
+      <li><strong>Coverage:</strong> include edge cases, refusals and "I don't know" cases, not only the happy path.</li>
+      <li><strong>Hygiene:</strong> dedupe, strip PII, remove test-set leakage, split train/val/test <em>before</em> augmenting.</li>
+      <li><strong>Size:</strong> hundreds of excellent examples for style or format; thousands for domain reasoning. Bedrock enforces per-model min/max record counts <span class="ver">verify</span>.</li>
+      <li><strong>Loss masking:</strong> train on assistant tokens only when possible (TRL: <code>assistant_only_loss</code> with a compatible template) <span class="ver">verify version</span>.</li>
+    </ul>
+  </article>
+
+  <article class="card" style="--c:var(--pink)" data-k="hyperparameters loss curves learning rate scheduler batch size warmup epochs mapping">
+    <h3>Loss curves &amp; hyperparameters</h3>
+    <p class="meta">TRL argument ↔ Bedrock API name</p>
+    <div class="tbl"><table>
+      <thead><tr><th>Concept</th><th>TRL (<code>SFTConfig</code>)</th><th>Bedrock (<code>hyperParameters</code>)</th><th>Rule of thumb</th></tr></thead>
+      <tbody>
+        <tr><th>Epochs</th><td><code>num_train_epochs</code></td><td><code>epochCount</code></td><td>1 to 3. More epochs on small data = memorization.</td></tr>
+        <tr><th>Batch size</th><td><code>per_device_train_batch_size</code> × <code>gradient_accumulation_steps</code> × GPUs</td><td><code>batchSize</code></td><td>Effective batch 16 to 64. Accumulate when VRAM-bound.</td></tr>
+        <tr><th>Learning rate</th><td><code>learning_rate</code> (LoRA ~1e-4 to 2e-4; full FT ~1e-5)</td><td><code>learningRate</code> (small values, per-model range)</td><td>First knob to lower when loss spikes or general ability drops.</td></tr>
+        <tr><th>Warmup</th><td><code>warmup_ratio</code> or <code>warmup_steps</code></td><td><code>learningRateWarmupSteps</code> <span class="ver">model-specific</span></td><td>~3 to 10% of total steps.</td></tr>
+        <tr><th>LR schedule</th><td><code>lr_scheduler_type="cosine"</code> (cosine with warmup)</td><td>Not exposed; managed by service</td><td>Cosine decay is a safe default for SFT.</td></tr>
+        <tr><th>Early stopping</th><td><code>EarlyStoppingCallback</code> + <code>load_best_model_at_end</code></td><td><code>earlyStoppingThreshold</code> / <code>earlyStoppingPatience</code> <span class="ver">some models</span></td><td>Watch validation loss, not training loss.</td></tr>
+        <tr><th>Loss logging</th><td><code>logging_steps</code>, <code>eval_strategy</code>, <code>report_to</code> (TensorBoard, W&amp;B)</td><td>Step-wise training and validation metrics CSVs written under the output S3 prefix</td><td>Plot both curves every run; keep them with the model version.</td></tr>
+        <tr><th>Precision / memory</th><td><code>bf16</code>, <code>gradient_checkpointing</code>, <code>optim</code></td><td>Not applicable</td><td>Use bf16 on Ampere+; checkpointing trades speed for VRAM.</td></tr>
+      </tbody>
+    </table></div>
+
+    <h4>Reading the curves</h4>
+    <figure class="diagram" style="margin-top:6px">
+      <svg viewBox="0 0 900 240" role="img" aria-label="Healthy versus overfitting loss curves">
+        <g transform="translate(20,10)">
+          <text x="0" y="12" class="t-h" style="fill:var(--green)">healthy: both fall, small gap</text>
+          <rect x="0" y="24" width="400" height="170" rx="8" fill="none" stroke="rgba(255,255,255,.13)"/>
+          <polyline fill="none" stroke="#ffd866" stroke-width="2.2" points="10,40 60,90 110,120 170,140 240,152 320,160 390,164"/>
+          <polyline fill="none" stroke="#78dce8" stroke-width="2.2" points="10,46 60,98 110,130 170,150 240,162 320,170 390,174"/>
+          <text x="20" y="214" class="t-sub">steps →</text>
+          <text x="250" y="214" class="t-sub" style="fill:var(--yellow)">— train</text><text x="320" y="214" class="t-sub" style="fill:var(--cyan)">— val</text>
+        </g>
+        <g transform="translate(470,10)">
+          <text x="0" y="12" class="t-h" style="fill:var(--pink)">overfit: val turns up, stop here ▼</text>
+          <rect x="0" y="24" width="400" height="170" rx="8" fill="none" stroke="rgba(255,255,255,.13)"/>
+          <polyline fill="none" stroke="#ffd866" stroke-width="2.2" points="10,40 60,95 110,135 170,158 240,172 320,180 390,184"/>
+          <polyline fill="none" stroke="#78dce8" stroke-width="2.2" points="10,46 60,100 110,128 170,138 215,140 280,128 330,112 390,96"/>
+          <line x1="215" y1="30" x2="215" y2="190" stroke="#ff6188" stroke-dasharray="4 4"/>
+          <text x="20" y="214" class="t-sub">steps →</text>
+          <text x="250" y="214" class="t-sub" style="fill:var(--yellow)">— train</text><text x="320" y="214" class="t-sub" style="fill:var(--cyan)">— val</text>
+        </g>
+      </svg>
+      <figcaption>fig 3 · pick the checkpoint at the validation minimum</figcaption>
+    </figure>
+    <div class="tbl"><table>
+      <thead><tr><th>Symptom</th><th>Likely cause</th><th>Fix</th></tr></thead>
+      <tbody>
+        <tr><th>Train ↓, val ↑</th><td>Overfitting</td><td>Fewer epochs, more data, lower rank, add dropout, early stop</td></tr>
+        <tr><th>Both flat and high</th><td>Underfitting or LR too low, bad template</td><td>Raise LR or rank, check chat template and loss masking</td></tr>
+        <tr><th>Spiky or NaN</th><td>LR too high, bad batch, fp16 overflow</td><td>Lower LR, longer warmup, use bf16, clip gradients</td></tr>
+        <tr><th>Loss good, outputs bad</th><td>Train/inference template mismatch, metric not task-aligned</td><td>Same template at serve time; evaluate on task metrics</td></tr>
+      </tbody>
+    </table></div>
+  </article>
+
+  <article class="card" style="--c:var(--pink)" data-k="quantization gguf gptq awq export merge provisioned throughput custom model import deployment artifacts">
+    <h3>Quantization &amp; deployment artifacts</h3>
+    <p class="meta">TRL gives you files; Bedrock gives you an endpoint</p>
+    <div class="win"><div class="win-head"><i style="background:var(--pink)"></i><i style="background:var(--yellow)"></i><i style="background:var(--green)"></i><span class="fname">export.py</span><button class="copy">copy</button></div>
+<pre><code data-lang="py">import torch
+from peft import AutoPeftModelForCausalLM
+from transformers import AutoTokenizer
+
+# 1. Merge the adapter into a bf16 base (NOT the 4-bit training copy)
+m = AutoPeftModelForCausalLM.from_pretrained("out/sft/adapter", torch_dtype=torch.bfloat16)
+m = m.merge_and_unload()
+m.save_pretrained("out/merged", safe_serialization=True)
+AutoTokenizer.from_pretrained("out/sft/adapter").save_pretrained("out/merged")
+
+# 2a. GGUF for llama.cpp / Ollama
+#   python llama.cpp/convert_hf_to_gguf.py out/merged --outfile model-f16.gguf --outtype f16
+#   llama-quantize model-f16.gguf model-q4_k_m.gguf Q4_K_M
+# 2b. GPTQ / AWQ for GPU serving (vLLM, TGI): calibrate on ~128-512 domain samples
+#   tools: llm-compressor, GPTQModel, AutoAWQ <span class="t-c"># ecosystem moves fast; check maintenance status</span>
+
+# 3. Serve:  vllm serve out/merged   (or out/merged-awq)</code></pre></div>
+    <div class="tbl"><table>
+      <thead><tr><th>Format</th><th>Runtime</th><th>Use when</th><th>Trade-off</th></tr></thead>
+      <tbody>
+        <tr><th>safetensors (bf16)</th><td>Transformers, vLLM, Bedrock Custom Model Import</td><td>Max quality; the import path to Bedrock</td><td>Largest memory footprint</td></tr>
+        <tr><th>GGUF (Q4_K_M, Q5, Q8)</th><td>llama.cpp, Ollama, edge/CPU</td><td>Laptops, on-device, CPU inference</td><td>Not importable into Bedrock</td></tr>
+        <tr><th>GPTQ / AWQ (4-bit)</th><td>vLLM, TGI on GPU</td><td>Cut GPU cost, keep throughput</td><td>Needs calibration data and a quality re-check</td></tr>
+      </tbody>
+    </table></div>
+
+    <h4>Bedrock packaging</h4>
+    <ul>
+      <li><strong>Customization job output:</strong> a custom model ARN. No weights to download or quantize; AWS owns the serving format.</li>
+      <li><strong>Provisioned Throughput:</strong> you reserve model units (no-commit hourly, or 1/6-month commitment) and invoke with the provisioned ARN as <code>modelId</code>. You pay while it is provisioned, so delete idle ones.</li>
+      <li><strong>Custom Model Import (bridge):</strong> upload merged safetensors for a supported architecture and get a Bedrock-hosted imported model, billed on active usage rather than reserved units <span class="ver">verify supported architectures</span>.</li>
+    </ul>
+    <div class="win"><div class="win-head"><i style="background:var(--pink)"></i><i style="background:var(--yellow)"></i><i style="background:var(--green)"></i><span class="fname">import_job.py</span><button class="copy">copy</button></div>
+<pre><code data-lang="py">bedrock.create_model_import_job(
+    jobName="import-support-llama",
+    importedModelName="support-llama-v1",
+    roleArn="arn:aws:iam::&lt;ACCOUNT_ID&gt;:role/BedrockImportRole",
+    modelDataSource={"s3DataSource": {"s3Uri": "s3://BUCKET/models/out/merged/"}},
+)</code></pre></div>
+  </article>
+
+  <article class="card" style="--c:var(--pink)" data-k="evaluation bleu rouge llm as a judge harness arn checkpoint regression">
+    <h3>Evaluation frameworks</h3>
+    <p class="meta">one harness, two backends: swap only the <code>generate()</code> function</p>
+    <div class="tbl"><table>
+      <thead><tr><th>Layer</th><th>What it tells you</th><th>Good for</th><th>Blind spot</th></tr></thead>
+      <tbody>
+        <tr><th>Exact match / schema validity</th><td>Did it follow the format?</td><td>Classification, JSON extraction</td><td>Says nothing about quality</td></tr>
+        <tr><th>ROUGE / BLEU</th><td>N-gram overlap with a reference</td><td>Summarization, translation, templated output</td><td>Penalizes valid paraphrases</td></tr>
+        <tr><th>LLM-as-a-judge</th><td>Rubric score for helpfulness, faithfulness, tone</td><td>Open-ended generation, pairwise A/B vs base</td><td>Judge bias; calibrate against human labels</td></tr>
+        <tr><th>Regression suite</th><td>General ability retained?</td><td>Forgetting detection, safety</td><td>Needs upkeep</td></tr>
+      </tbody>
+    </table></div>
+    <div class="win"><div class="win-head"><i style="background:var(--pink)"></i><i style="background:var(--yellow)"></i><i style="background:var(--green)"></i><span class="fname">eval_harness.py</span><button class="copy">copy</button></div>
+<pre><code data-lang="py">import boto3, evaluate, json
+rt = boto3.client("bedrock-runtime", region_name="us-east-1")
+
+# ---- backend A: Bedrock custom model (use the PROVISIONED model ARN as modelId)
+def gen_bedrock(prompt, model_id):
+    r = rt.converse(modelId=model_id,
+                    messages=[{"role": "user", "content": [{"text": prompt}]}],
+                    inferenceConfig={"maxTokens": 512, "temperature": 0.0})
+    return r["output"]["message"]["content"][0]["text"]
+
+# ---- backend B: local Hugging Face checkpoint
+from transformers import pipeline
+pipe = pipeline("text-generation", model="out/merged", device_map="auto", torch_dtype="bfloat16")
+def gen_hf(prompt, _=None):
+    out = pipe([{"role": "user", "content": prompt}], max_new_tokens=512, do_sample=False)
+    return out[0]["generated_text"][-1]["content"]
+
+# ---- automated metrics
+rouge, bleu = evaluate.load("rouge"), evaluate.load("sacrebleu")
+def score(preds, refs):
+    return {"rougeL": rouge.compute(predictions=preds, references=refs)["rougeL"],
+            "bleu": bleu.compute(predictions=preds, references=[[r] for r in refs])["score"]}
+
+# ---- LLM-as-a-judge (judge = a stronger model, NOT the model under test)
+RUBRIC = "Score 1-5 for faithfulness to the reference and format compliance. Reply JSON: {\"score\":n,\"why\":\"...\"}"
+def judge(prompt, answer, ref, judge_id):
+    q = f"{RUBRIC}\n\nPROMPT:\n{prompt}\n\nREFERENCE:\n{ref}\n\nANSWER:\n{answer}"
+    return json.loads(gen_bedrock(q, judge_id))
+
+# ---- run: same eval set, compare base vs tuned, gate the release
+# base  = [gen_bedrock(p, BASE_ID)    for p in prompts]
+# tuned = [gen_bedrock(p, CUSTOM_ARN) for p in prompts]    # or gen_hf for local checkpoints
+# promote only if tuned wins on task metrics AND regression suite holds</code></pre></div>
+    <div class="callout" style="--c:var(--cyan)"><b>// practice</b>Use temperature 0 for repeatable scoring, pin the judge model and rubric version, evaluate on data the model never trained on, and log every run against the model version and dataset hash so a score change always has an owner.</div>
+  </article>
+</section>
+
+<!-- ================= 4 ================= -->
+<section class="sec" id="s4" style="--c:var(--green)">
+  <div class="sec-head">
+    <p class="sec-num">// 04</p>
+    <h2 class="title">Architectural decisions: when to fine-tune</h2>
+    <p>Each strategy fixes a different class of failure. Choose by what is actually broken, and layer them when more than one is.</p>
+  </div>
+
+  <figure class="diagram">
+    <svg viewBox="0 0 960 290" role="img" aria-label="Decision flow: prompt engineering, RAG, fine-tuning">
+      <defs><marker id="ah3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="#c1b8c8"/></marker></defs>
+      <rect class="box" x="10" y="20" width="285" height="84" rx="10" style="stroke:var(--yellow)"/>
+      <text x="152" y="52" text-anchor="middle" class="t-h">Can a better prompt or</text><text x="152" y="70" text-anchor="middle" class="t-h">few-shot examples fix it?</text><text x="152" y="90" text-anchor="middle" class="t-sub">measure on your eval set</text>
+      <rect class="box" x="337" y="20" width="285" height="84" rx="10" style="stroke:var(--cyan)"/>
+      <text x="480" y="52" text-anchor="middle" class="t-h">Is the model missing fresh,</text><text x="480" y="70" text-anchor="middle" class="t-h">private or changing facts?</text><text x="480" y="90" text-anchor="middle" class="t-sub">docs, tickets, prices, policy</text>
+      <rect class="box" x="664" y="20" width="285" height="84" rx="10" style="stroke:var(--pink)"/>
+      <text x="806" y="52" text-anchor="middle" class="t-h">Is it style, format, tone or</text><text x="806" y="70" text-anchor="middle" class="t-h">a repeatable reasoning pattern?</text><text x="806" y="90" text-anchor="middle" class="t-sub">plus 100s of good examples</text>
+      <path class="arr" d="M295 62H333" marker-end="url(#ah3)"/><text x="314" y="52" text-anchor="middle" class="t-sub">no</text>
+      <path class="arr" d="M622 62H660" marker-end="url(#ah3)"/><text x="641" y="52" text-anchor="middle" class="t-sub">no</text>
+      <path class="arr" d="M152 104V160" marker-end="url(#ah3)"/><text x="170" y="136" class="t-sub">yes</text>
+      <path class="arr" d="M480 104V160" marker-end="url(#ah3)"/><text x="498" y="136" class="t-sub">yes</text>
+      <path class="arr" d="M806 104V160" marker-end="url(#ah3)"/><text x="824" y="136" class="t-sub">yes</text>
+      <rect class="box" x="10" y="162" width="285" height="60" rx="10" style="fill:rgba(255,216,102,.1);stroke:var(--yellow)"/><text x="152" y="188" text-anchor="middle" class="t-h" style="fill:var(--yellow)">PROMPT ENGINEERING</text><text x="152" y="206" text-anchor="middle" class="t-sub">API-driven · instant</text>
+      <rect class="box" x="337" y="162" width="285" height="60" rx="10" style="fill:rgba(120,220,232,.1);stroke:var(--cyan)"/><text x="480" y="188" text-anchor="middle" class="t-h" style="fill:var(--cyan)">RAG</text><text x="480" y="206" text-anchor="middle" class="t-sub">API + index · real-time facts</text>
+      <rect class="box" x="664" y="162" width="285" height="60" rx="10" style="fill:rgba(255,97,136,.1);stroke:var(--pink)"/><text x="806" y="188" text-anchor="middle" class="t-h" style="fill:var(--pink)">FINE-TUNE</text><text x="806" y="206" text-anchor="middle" class="t-sub">Bedrock job or TRL run · static</text>
+      <text x="480" y="260" text-anchor="middle" class="t-sub">Most production systems combine all three: fine-tune for behavior, RAG for facts, prompts for per-request control.</text>
+    </svg>
+    <figcaption>fig 4 · escalate only when the cheaper layer fails your eval</figcaption>
+  </figure>
+
+  <article class="card" style="--c:var(--green)" data-k="decision table prompt engineering rag fine-tuning strategy data horizon implementation boundary">
+    <h3>Strategy comparison</h3>
+    <p class="meta">prompt engineering vs RAG vs fine-tuning / customization</p>
+    <div class="tbl"><table>
+      <thead><tr><th>Strategy</th><th>Primary purpose</th><th>Data horizon (real-time vs static)</th><th>Implementation boundary (API-driven vs compute-driven)</th></tr></thead>
+      <tbody>
+        <tr><th style="color:var(--yellow)">Prompt engineering</th><td>Instant formatting and task steering: instructions, few-shot examples, output structure, persona.</td><td><strong>Per-request.</strong> Lives in the prompt, changes instantly, no persistence.</td><td><strong>API-driven.</strong> Edit text and call <code>Converse</code> or any model API. No training, no infra.</td></tr>
+        <tr><th style="color:var(--cyan)">RAG</th><td>Inject fresh, private, citable facts at query time and reduce hallucination on knowledge.</td><td><strong>Real-time.</strong> Re-index and the next answer reflects it. Updates in minutes.</td><td><strong>API + data infrastructure.</strong> Embeddings, vector store, retrieval, chunking. Still no training compute.</td></tr>
+        <tr><th style="color:var(--pink)">Fine-tuning / customization</th><td>Permanently lock in domain-specific reasoning, formatting rules and strict output style, on Bedrock jobs or custom TRL runs.</td><td><strong>Static.</strong> Frozen at training time; new knowledge needs a retrain.</td><td><strong>Compute-driven.</strong> Bedrock managed job or GPU training with TRL, plus evals, versioning and serving.</td></tr>
+      </tbody>
+    </table></div>
+
+    <h4>Signals that point to fine-tuning</h4>
+    <ul>
+      <li>Long few-shot prompts you pay for on every call, which a tuned model would not need (cost and latency).</li>
+      <li>A strict schema or tone that prompting follows only ~90% of the time.</li>
+      <li>A smaller, cheaper model must match a larger one on a narrow task (also the case for distillation).</li>
+      <li>You have hundreds of vetted examples and an eval set that proves the gap.</li>
+    </ul>
+    <h4>Signals that it is the wrong tool</h4>
+    <ul>
+      <li>The failure is missing or outdated facts: use RAG, tuning will just memorize stale data.</li>
+      <li>No eval set, or fewer than a few dozen clean examples.</li>
+      <li>Requirements change weekly; a retrain per change is not sustainable.</li>
+    </ul>
+  </article>
+
+  <article class="card" style="--c:var(--green)" data-k="bedrock vs trl choose when decision production checklist">
+    <h3>Choosing the execution layer, then shipping</h3>
+    <div class="pillars" style="margin-top:8px">
+      <div class="pillar" style="--c:var(--yellow)"><b>Choose Bedrock when</b><span>You are AWS-native, need IAM/VPC/KMS governance, want minimal ops, and the base model is on the supported list.</span></div>
+      <div class="pillar" style="--c:var(--cyan)"><b>Choose TRL when</b><span>You need open weights, DPO/GRPO, custom losses, specific GPUs, or portability across clouds and edge.</span></div>
+      <div class="pillar" style="--c:var(--pink)"><b>Hybrid</b><span>Train with TRL, merge to safetensors, import to Bedrock for managed serving and guardrails.</span></div>
+      <div class="pillar" style="--c:var(--green)"><b>Always</b><span>Version dataset, config and model together. Gate promotion on evals. Keep a rollback ARN or checkpoint.</span></div>
+    </div>
+    <h4>Pre-launch checklist</h4>
+    <ol>
+      <li>Baseline: prompt-engineered base model scored on a held-out eval set.</li>
+      <li>Dataset: deduped, PII-scrubbed, schema-validated, split before augmentation.</li>
+      <li>Train: small pilot run first (tiny subset) to validate templates and loss masking.</li>
+      <li>Evaluate: task metrics, LLM judge, regression suite, red-team prompts.</li>
+      <li>Deploy: canary traffic, log inputs/outputs, monitor drift and cost per request.</li>
+      <li>Operate: schedule retraining when RAG-backed facts or requirements shift; delete unused Provisioned Throughput.</li>
+    </ol>
+  </article>
+</section>
+
+<div class="empty" id="empty">No cards match that filter.</div>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>© 2026 Michael Legemah · Principal AI Engineer</span>
+    <span><a href="https://mleg.tech" target="_blank" rel="noopener">mleg.tech</a></span>
+  </div>
+</footer>
+
+<script>
+(function () {
+  // minimal syntax highlighter
+  var RE = /(#[^\n]*|\/\/[^\n]*)|("(?:[^"\\\n]|\\.)*"|'(?:[^'\\\n]|\\.)*')|\b(import|from|as|def|return|for|in|if|else|while|with|True|False|None|class|lambda|break|aws|export)\b|\b(\d+(?:\.\d+)?(?:e-?\d+)?)\b/g;
+  document.querySelectorAll('pre code').forEach(function (el) {
+    if (el.getAttribute('data-lang') === 'none') return;
+    if (el.querySelector('span')) { /* contains manual markup */ }
+    var html = el.innerHTML;
+    if (html.indexOf('<span') !== -1) return;
+    el.innerHTML = html.replace(RE, function (m, c, s, k, n) {
+      if (c) return '<span class="t-c">' + c + '</span>';
+      if (s) return '<span class="t-s">' + s + '</span>';
+      if (k) return '<span class="t-k">' + k + '</span>';
+      if (n) return '<span class="t-n">' + n + '</span>';
+      return m;
+    });
+  });
+
+  // copy buttons
+  document.querySelectorAll('.copy').forEach(function (b) {
+    b.addEventListener('click', function () {
+      var code = b.closest('.win').querySelector('code');
+      var txt = code.textContent;
+      var done = function () { b.textContent = 'copied'; setTimeout(function () { b.textContent = 'copy'; }, 1400); };
+      try { navigator.clipboard.writeText(txt).then(done, done); } catch (e) { done(); }
+    });
+  });
+
+  // card filter
+  var q = document.getElementById('q'), empty = document.getElementById('empty');
+  var cards = Array.prototype.slice.call(document.querySelectorAll('article.card'));
+  q.addEventListener('input', function () {
+    var v = q.value.trim().toLowerCase(), shown = 0;
+    cards.forEach(function (c) {
+      var hay = ((c.getAttribute('data-k') || '') + ' ' + c.textContent).toLowerCase();
+      var ok = !v || hay.indexOf(v) !== -1;
+      c.classList.toggle('hide', !ok);
+      if (ok) shown++;
+    });
+    empty.style.display = shown ? 'none' : 'block';
+  });
+
+  // active nav chip
+  var chips = document.querySelectorAll('.chip');
+  var secs = document.querySelectorAll('section.sec');
+  if ('IntersectionObserver' in window) {
+    var io = new IntersectionObserver(function (es) {
+      es.forEach(function (e) {
+        if (e.isIntersecting) {
+          chips.forEach(function (c) { c.classList.toggle('on', c.getAttribute('href') === '#' + e.target.id); });
+        }
+      });
+    }, { rootMargin: '-30% 0px -60% 0px' });
+    secs.forEach(function (s) { io.observe(s); });
+  }
+})();
+</script>
+</body>
+</html>
